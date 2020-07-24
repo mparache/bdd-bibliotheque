@@ -1,0 +1,199 @@
+Normalisation : 
+Forme Normale 1NF :
+Ici tout les attributs sont atomiques, donc on est en 1NF.
+
+Forme Normale 2NF :
+Toutes les clés sont atomiques sauf dans la table joue et réalisation mais dans celle-ci, il n'y a pas d'autres attributs. Donc on est en 2NF.
+
+Forme Normale 3NF :
+D'après les tables, on peut voir qu'aucun attribut non clé détermine un autre attribut non clé. La plupart des attributs non clé sont déterminés par la clé primaire ou alors par une clé candidate de la table en question.
+
+Héritage utilisateur par classes filles :
+
+Adherent (
+  #NumCarte : int,
+  telephone: int(10),
+  dateNaiss : date,
+  loginPret : text NOT NULL,
+  mdpPret : text NOT NULL,
+  blacklist : boolean NOT NULL,
+  nom : text NOT NULL,
+  prenom : text NOT NULL,
+  adresse : text,
+  mail : text NOT NULL
+)
+
+MembrePersonnel (
+  #loginAdm : text,
+  mdpAdm : text NOT NULL,
+  nom : text NOT NULL,
+  prenom : text NOT NULL,
+  adresse : text,
+  mail : text NOT NULL
+)
+
+Adhesion (
+  #id : int,
+  date_debut : date NOT NULL,
+  date_fin : date NOT NULL,
+  adherent => adherent.NumCarte NOT NULL
+)
+
+
+
+
+
+Pret(
+  #id : int,
+  date_debut : date NOT NULL,
+  duree : int NOT NULL,
+  rendu: boolean NOT NULL,
+  Exemplaire=>Exemplaire.id NOT NULL,
+  adherent=>adherent.NumCarte NOT NULL
+)
+
+
+Héritage Sanction par la classe mère :
+Sanction (
+  #id : int,
+  description : texte,
+  type : {Retard,Deterioration,Perte} ,
+  date_fin_sanction : date,
+  Remboursement : Boolean,
+  Membre =>MembrePersonnel.login NOT NULL,
+  Adherent =>Adherent.NumCarte NOT NULL,
+  Pret=>Pret.id NOT NULL
+)
+
+Contrainte associée :
+(TYPE = Retard AND "nb_jours IS NOT NULL AND" nb_jours>=0 AND Remboursement IS NULL) OR ((Type = Deterioration OR Type = Perte) AND nb_jours IS NULL AND Remboursement IS NOT NULL )
+
+Langue(
+  #Nom : text
+)
+
+
+TEST par Reference NON ADOPTERx
+{
+      Héritage ressource par Reference
+      Ressource(
+        #code : int,
+        titre : text NOT NULL,
+        date_apparition : date,
+        editeur : text NOT NULL,
+        genre : text,
+        code_classification : text UNIQUE NOT NULL
+      )
+
+      Livre(
+        #code => ressource.code,
+        code_isbn : int UNIQUE NOT NULL,
+        resume : text NOT NULL,
+        langue => Langue.nom NOT NULL,
+        auteur = contributeur.id NOT NULL,
+        editeurLivre = contributeur.id NOT NULL
+      )
+
+      enregistrementMusical(
+        #code => ressource.code,
+        longueur : int,
+        Compositeur => contributeur.id NOT NULL,
+        interprete => interprete.id NOT NULL
+      )
+
+      Film(
+        #code => ressource.code,
+        longueur : int,
+        synopsis : text
+        Realisateur => contributeur.id NOT NULL
+      )
+
+      vLivre = jointure (Ressource, Livre, Ressource.code = Livre.code)
+      vFilm = jointure (Ressource, Film, Ressource.code = Film.code)
+      venregistrementMusical = jointure (Ressource, enregistrementMusical, Ressource.code = enregistrementMusical.code)
+
+      Contraintes:
+      C1) jointure (Livre, Film, Film.code = Livre.code) = ensembleVide
+      C2) jointure (Livre, Film, Film.code = Livre.code) = ensembleVide
+      C3) jointure (Livre, Film, Film.code = Livre.code) = ensembleVide
+      C4) union(union(venregistrementMusical,vLivre),vFilm) = Ressource
+}
+Héritage ressource par filles
+Livre(
+  #code : int,
+  titre : text NOT NULL,
+  date_apparition : date,
+  editeur : text ,
+  genre : text NOT NULL,
+  code_classification : text UNIQUE NOT NULL
+  resume : text NOT NULL,
+  langue => Langue.nom NOT NULL,
+  auteur = contributeur.id NOT NULL,
+  editeur = contributeur.id NOT NULL
+)
+
+enregistrementMusical(
+  #code : int,
+  titre : text NOT NULL,
+  date_apparition : date,
+  editeur : text ,
+  genre : text NOT NULL,
+  code_classification : text UNIQUE NOT NULL
+  longueur : int,
+  Compositeur => contributeur.id NOT NULL,
+  interprete => interprete.id NOT NULL
+)
+
+Film(
+  #code : int,
+  titre : text NOT NULL,
+  date_apparition : date,
+  editeur : text,
+  genre : text NOT NULL,
+  code_classification : text UNIQUE NOT NULL
+  longueur : int,
+  synopsis : text
+  Realisateur => contributeur.id NOT NULL
+)
+
+Exemplaire(
+  #id : int,
+  etat : {neuf|bon|abime} NOT NULL,
+  disponibilite : {pret|disponible|perdu} NOT NULL,
+  codelivre =>Livre.code,
+  codeFilm =>Film.code,
+  codeenregistrementMusical =>enregistrementMusical.code
+)
+
+C1) jointure (Livre, Film, Film.code = Livre.code) = ensembleVide
+C2) jointure (enregistrementMusical, Film, Film.code = enregistrementMusical.code) = ensembleVide
+C3) jointure (Livre, enregistrementMusical, enregistrementMusical.code = Livre.code) = ensembleVide
+C4)
+((Exemplaire.codeLivre AND Exemplaire.codeFilm IS NULL AND Exemplaire.codeenregistrementMusical IS NULL)
+OR
+(Exemplaire.codeLivre IS NULL AND Exemplaire.codeFilm  AND Exemplaire.codeenregistrementMusical IS NULL)
+OR
+(Exemplaire.codeLivre IS NULL AND Exemplaire.codeFilm IS NULL AND Exemplaire.codeenregistrementMusical))
+
+
+Realisation(
+  #codeFilm=>film.code, #langue=>langue.nom
+)
+
+Contributeur(
+  #id : int,
+  nom : text NOT NULL,
+  prenom : text NOT NULL,
+  dateNaiss : date,
+  Nationalite : text NOT NULL
+)
+
+Ajoue(
+  #acteur => contributeur.id,
+  #film = film.code
+)
+
+Vues :
+Liste adhérents qui peuvent emprunter
+Pour les sanctions au plus 2 par prêt
+Les 3 contraintes sur ressources

@@ -1,0 +1,130 @@
+#@startuml
+hide circle
+
+Class Livre{
+  code_isbn : nb
+  résumé : text
+}
+
+Class Film{
+  longueur : nb
+  synopsis : text
+}
+
+Class Langue{
+  nom : text
+}
+
+Class Enregistrement_Musical{
+  longueur : nb
+}
+
+Class Contributeur{
+  nom : text
+  prenom : text
+  date_naissance : date
+  nationalité : text
+}
+
+Class Ressource{
+  code : nb
+  titre : text
+  date_apparition : date
+  editeur : text
+  genre : text
+  code_classification : nb
+  nb_emprunts () : nb
+}
+
+Class Exemplaire{
+  etat : {neuf|bon|abîmé}
+  id : nb
+  disponibilité : {prêté|disponible|perdu}
+}
+
+Class Utilisateur{
+  nom : text
+  prenom : text
+  adresse : text
+  mail : text
+}
+
+Class Membre_Personnel{
+  login_adm : text
+  mdp_adm : text
+}
+
+Class Adherent{
+  numero_carte : nb
+  telephone : nb
+  date_naissance : date
+  login_prêt : text
+  mdp_prêt : text
+  blacklist : boolean
+}
+
+Class Prêt{
+  date_debut : date
+  durée : nb
+  rendu : boolean
+  dépassé () : boolean
+}
+
+Class Sanction{
+  id : nb
+  desc : text
+}
+
+Class Retard{
+  date_fin_sanction : date
+}
+
+Class Deterioration{
+  remboursement : boolean
+}
+
+Class Perte{
+  remboursement : boolean
+}
+
+Class Adhésion {
+  date_debut : date
+  date_fin : date
+}
+
+Sanction <|-- Retard
+Sanction <|-- Perte
+Sanction <|-- Deterioration
+
+Utilisateur <|-- Membre_Personnel
+Utilisateur <|-- Adherent
+
+Ressource <|-- Livre
+Ressource <|-- Enregistrement_Musical
+Ressource <|-- Film
+
+Adhésion "*" - "1" Adherent : a souscrit
+Adherent "1" -- "*" Sanction : a subi
+Adherent "1" -- "5" Prêt : peut faire
+
+Prêt "*" -- "1" Exemplaire : associé
+Prêt "1" - "0..2" Sanction : est lié à
+
+Membre_Personnel "1" -- "*" Sanction : donne
+
+Film "*" - "*" Langue : est réalisé en
+Film "*" -- "1" Contributeur : Réalisateur
+Film "*" -- "*" Contributeur : Acteur
+
+Langue "1" - "*" Livre : est écrit en
+
+Ressource -- "*" Exemplaire : est constiuée
+
+Livre "*" -- "1" Contributeur : Auteur
+Livre "*" -- "1" Contributeur : Editeur
+
+Enregistrement_Musical "*" -- "1" Contributeur : Compositeur
+Enregistrement_Musical "*" -- "1" Contributeur : Interprète
+
+
+@enduml
